@@ -1,0 +1,44 @@
+name: What If?
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  compile-and-what-if:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Setup Bicep
+        uses: anthony-c-martin/setup-bicep@v0.1
+
+      - name: Build Bicep
+        run: bicep build main.bicep
+
+      - name: Azure Login
+        uses: Azure/login@v1.1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: What-if deployment
+        shell: bash
+        run: |
+          CHANGES="$(az deployment group what-if -n bicep-action -g bicep-action --template-file ./main.json)"
+          TEXT="$(printf "\`\`\`Text\n%s\n\`\`\`" "$(echo "$CHANGES")")"
+          RESULT="$(echo "$TEXT" | sed s/\"/'\\\"'/g | sed s/\`/'\\\`'/g)"
+          RESULT="${RESULT//'%'/'%25'}"
+          RESULT="${RESULT//$'\n'/'%0A'}"
+          RESULT="${RESULT//$'\r'/'%0D'}"
+          echo "::set-output name=changes::$RESULT"
+        id: what-if-deployment
+      - uses: actions/github-script@v3
+        with:
+          github-token: ${{ github.token }}
+          script: |
+            github.issues.createComment({
+              issue_number: ${{ github.event.number }},
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `${{ steps.what-if-deployment.outputs.changes }}`
+            })

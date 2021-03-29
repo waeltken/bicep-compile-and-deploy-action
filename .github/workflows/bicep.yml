@@ -1,7 +1,7 @@
-name: CI
+name: Compile and Deploy
 on:
-    push:
-        branches: [ main ]
+  push:
+    branches: [main]
 
 jobs:
   compile-and-deploy:
@@ -9,18 +9,18 @@ jobs:
 
     steps:
       - uses: actions/checkout@v2
-      
+
       - name: Setup Bicep
         uses: anthony-c-martin/setup-bicep@v0.1
 
       - name: Build Bicep
         run: bicep build main.bicep
-      
+
       - name: Azure Login
         uses: Azure/login@v1.1
         with:
           creds: ${{ secrets.AZURE_CREDENTIALS }}
-    
+
       - name: Deploy Azure Resource Manager (ARM) Template
         uses: Azure/arm-deploy@v1
         with:
@@ -28,3 +28,4 @@ jobs:
           resourceGroupName: bicep-action
           template: main.json
           deploymentMode: Complete
+          deploymentName: bicep-action
