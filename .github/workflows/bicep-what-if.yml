@@ -1,4 +1,4 @@
-name: CI
+name: What If?
 on:
   pull_request:
     branches: [main]
@@ -24,7 +24,7 @@ jobs:
       - name: What-if deployment
         shell: bash
         run: |
-          CHANGES="$(az deployment group what-if -n what-if -g bicep-action --template-file ./main.json)"
+          CHANGES="$(az deployment group what-if -n bicep-action -g bicep-action --template-file ./main.json)"
           TEXT="$(printf "\`\`\`Text\n%s\n\`\`\`" "$(echo "$CHANGES")")"
           RESULT="$(echo "$TEXT" | sed s/\"/'\\\"'/g | sed s/\`/'\\\`'/g)"
           RESULT="${RESULT//'%'/'%25'}"
