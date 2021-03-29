@@ -25,5 +25,6 @@ jobs:
         uses: Azure/arm-deploy@v1
         with:
           scope: resourcegroup
+          resourceGroupName: bicep-action
           template: main.json
           deploymentMode: Complete
